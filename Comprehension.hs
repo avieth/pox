@@ -24,7 +24,7 @@ import Types
 import Disjunct
 import Conjunct
 
-type Comprehension = Conjunct
+type Comprehension = Disjunct
 
 artist :: Artist -> Disjunct
 artist = disjunctSingle . mkArtist
