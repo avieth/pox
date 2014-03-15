@@ -1,6 +1,7 @@
+-- TBD these are necessary?
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
+
 module MPDInterpreter (
-    evalComprehension
-  , playSongs
   ) where
 
 import Control.Monad
@@ -13,11 +14,17 @@ import Comprehension hiding ((<&>))
 import Conjunct
 import Disjunct
 
+import PoxgramInterpreter
+
+instance (Functor m, MonadMPD m) => PoxgramInterpreter m Song where
+  atomizeComprehension = evalComprehension
+  playSong = playSongAndBlock
+
 -- | The goal implementation: play a song and block until its finished.
 --   Aha but MPD does not play songs, it plays a playlist.
 --   This will have to clear the playlist, put the song in, and hit play.
-playSong :: (MonadMPD m) => Song -> m ()
-playSong s = do
+playSong' :: (MonadMPD m) => Song -> m ()
+playSong' s = do
   clear
   add_ $ sgFilePath s
   -- play takes a Maybe Int. I believe it indicates the position in the
@@ -25,13 +32,9 @@ playSong s = do
   -- We give Nothing; hopefully that means start from the beginning
   play Nothing
 
--- | We need a function to play a list of songs, though.
-playSongs :: (MonadMPD m) => [Song] -> m ()
-playSongs ss = forM_ ss playSongAndBlock
-
 playSongAndBlock :: (MonadMPD m) => Song -> m ()
 playSongAndBlock s = do
-  playSong s
+  playSong' s
   -- This is dubious. We may have a race!
   -- We want to block until the song is over; how can we do that with MPD's
   -- api? I figure we just block until the player subsystem has a state change.
