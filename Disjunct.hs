@@ -30,6 +30,7 @@ disjunctAnd a b = MkDisjunct $ distribute (unDisjunct a) (unDisjunct b)
 -- | We perform distribution using the standard list monad: distribute each
 --   single conjunct over the list of conjuncts, then concatenate.
 distribute :: [Conjunct] -> [Conjunct] -> [Conjunct]
+distribute [] ys = ys
 distribute xs ys = xs >>= (\x -> singleDistribute x ys)
 
 -- Distribute a single Conjunct over a list of Conjuncts.
