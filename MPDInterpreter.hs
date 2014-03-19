@@ -25,7 +25,7 @@ data MPDInterpreter = MkMPDInterpreter
 mpdInterpreter :: MPDInterpreter
 mpdInterpreter = MkMPDInterpreter
 
-instance PoxgramInterpreter MPDInterpreter Song where
+instance PoxgramInterpreter MPDInterpreter MPD Song where
   atomizeComprehension = \x -> mpdAtomizeComprehension
   playAtoms = \x -> mpdPlaySongs
 
@@ -53,13 +53,15 @@ playSongAndBlock s = do
   idle [PlayerS]
   return ()
 
-playSongs' :: MPD [Song] -> MPD ()
-playSongs' ys = do
-  songs <- ys
-  forM_ songs playSongAndBlock
+playSongs' :: [Song] -> MPD ()
+playSongs' songs = forM_ songs playSongAndBlock
 
-mpdPlaySongs :: IO [Song] -> IO ()
-mpdPlaySongs xs = (const ()) <$> (withMPD $ forM_ xs playSongs')
+mpdPlaySongs :: MPD [Song] -> IO ()
+mpdPlaySongs xs = (const ()) <$> (withMPD action)
+  where action = do {
+    songs <- xs;
+    playSongs' songs;
+  }
 
 -- | Produce a list of Songs from a Comprehension, inside some MonadMPD.
 mpdAtomizeComprehension :: (MonadMPD m) => Comprehension -> m [Song]
