@@ -3,7 +3,7 @@ module Comprehension (
   , artist
   , album
   , title
-  , year
+  , date
   , (<|>)
   , (<&>)
   ) where
@@ -35,24 +35,8 @@ album = disjunctSingle . mkAlbum
 title :: Title -> Disjunct
 title = disjunctSingle . mkTitle
 
-year :: Year -> Disjunct
-year = disjunctSingle . mkYear
+date :: Date -> Disjunct
+date = disjunctSingle . mkDate
 
 (<|>) = disjunctOr
 (<&>) = disjunctAnd
-
---applyComprehension :: (Constraint a -> Constraint a -> Constraint a)
---                   -> Comprehension -> Comprehension -> Comprehension
---
--- INTERESTING limitation found here! Evidently, since f is used on the
--- Constraint Artist type, its output must be fixed! That is, the third
--- Constraint a in the type above must be fixed at Constraint Artist! That's
--- not what I want, though... I want to be able to lift an ad-hoc polymorphic
--- function into here. Not possible!
--- Perhaps shoot this one out to Haskell Café?
---   
---applyComprehension f x y = C {
---    _artist = (_artist x) `f` (_artist y)
---  , _title = (_title x) `f` (_title y)
---  , _year = (_year x) `f` (_year y)
---  }

@@ -2,10 +2,10 @@ module Types (
     Artist
   , Album
   , Title
-  , Year
+  , Date 
   ) where
 
 type Artist = String
 type Album = String
 type Title = String
-type Year = Int
+type Date = String

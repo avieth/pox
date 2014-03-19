@@ -78,7 +78,7 @@ queryFromConjunct c =
   artistFromConjunct c
   <&> albumFromConjunct c
   <&> titleFromConjunct c
-  <&> yearFromConjunct c
+  <&> dateFromConjunct c
 
 artistFromConjunct c = case getArtist c of
   Just a -> Artist =? fromString a
@@ -92,9 +92,6 @@ titleFromConjunct c = case getTitle c of
   Just t -> Title =? fromString t
   Nothing -> anything
 
-yearFromConjunct c = case getYear c of
-  -- Oops, conjunct should use date, not year.
-  -- TBD best way to convert a number to a string then a bytestring?
+dateFromConjunct c = case getDate c of
   Just y -> Date =? fromString (show y)
-  --Just y -> Date =? (Value $ encode y)
   Nothing -> anything

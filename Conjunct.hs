@@ -3,11 +3,11 @@ module Conjunct (
   , getArtist
   , getAlbum
   , getTitle
-  , getYear
+  , getDate
   , mkArtist
   , mkAlbum
   , mkTitle
-  , mkYear
+  , mkDate
   , conjunctAnd
   ) where
 
@@ -17,20 +17,20 @@ data Conjunct = MkConjunct {
     _artist :: Maybe Artist
   , _album :: Maybe Album
   , _title :: Maybe Title
-  , _year :: Maybe Year
+  , _date :: Maybe Date
   } deriving (Show)
 
 getArtist = _artist
 getAlbum = _album
 getTitle = _title
-getYear = _year
+getDate = _date
 
 mkArtist :: Artist -> Conjunct
 mkArtist artist = MkConjunct {
     _artist = Just artist
   , _album = Nothing
   , _title = Nothing
-  , _year = Nothing
+  , _date = Nothing
   }
 
 mkAlbum :: Album -> Conjunct
@@ -38,7 +38,7 @@ mkAlbum album = MkConjunct {
     _artist = Nothing
   , _album = Just album
   , _title = Nothing
-  , _year = Nothing
+  , _date = Nothing
   }
 
 mkTitle :: Title -> Conjunct
@@ -46,15 +46,15 @@ mkTitle title = MkConjunct {
     _artist = Nothing
   , _album = Nothing
   , _title = Just title
-  , _year = Nothing
+  , _date = Nothing
   }
 
-mkYear :: Year -> Conjunct
-mkYear year = MkConjunct {
+mkDate :: Date -> Conjunct
+mkDate date = MkConjunct {
     _artist = Nothing
   , _album = Nothing
   , _title = Nothing
-  , _year = Just year
+  , _date = Just date
   }
 
 -- Conjunct is not a lattice, because some don't make sense. For instance:
@@ -66,10 +66,10 @@ mkYear year = MkConjunct {
 --
 conjunctAnd :: Conjunct -> Conjunct -> Conjunct
 conjunctAnd a b = MkConjunct {
-    _artist = conjunctFieldMeet _artist a b
-  , _album = conjunctFieldMeet _album a b
-  , _title = conjunctFieldMeet _title a b
-  , _year = conjunctFieldMeet _year a b
+  _artist = conjunctFieldMeet _artist a b
+, _album = conjunctFieldMeet _album a b
+, _title = conjunctFieldMeet _title a b
+  , _date = conjunctFieldMeet _date a b
   }
 
 conjunctFieldMeet :: (Conjunct -> Maybe a) -> Conjunct -> Conjunct -> Maybe a
