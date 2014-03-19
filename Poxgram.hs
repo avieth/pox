@@ -38,16 +38,16 @@ pgIfEmpty = IfEmpty
 
 -- Here we implement some list functions in the Poxgram datatype.
 pgTake :: Int -> Poxgram -> Poxgram
-pgTake 0 pg = Empty
-pgTake n pg = IfEmpty pg pg (Sequence (Head pg) (pgTake (n-1) (Tail pg)))
+pgTake 0 pg = pgEmpty
+pgTake n pg = pgIfEmpty pg pg (pgAppend (pgHead pg) (pgTake (n-1) (pgTail pg)))
 
 pgDrop :: Int -> Poxgram -> Poxgram
 pgDrop 0 pg = pg
-pgDrop n pg = IfEmpty pg pg (pgDrop (n-1) (Tail pg))
+pgDrop n pg = pgIfEmpty pg pg (pgDrop (n-1) (pgTail pg))
 
 pgRepeat :: Poxgram -> Poxgram
-pgRepeat pg = Sequence pg (pgRepeat pg)
+pgRepeat pg = pgAppend pg (pgRepeat pg)
 
 pgAlternate :: Int -> Int -> Poxgram -> Poxgram -> Poxgram
-pgAlternate n m p q = IfEmpty p q (Sequence (pgTake n p) next)
+pgAlternate n m p q = pgIfEmpty p q (pgAppend (pgTake n p) next)
   where next = pgAlternate m n q (pgDrop n p)

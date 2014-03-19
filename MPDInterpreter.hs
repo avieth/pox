@@ -1,12 +1,14 @@
 -- TBD these are necessary?
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, UndecidableInstances #-}
 
 module MPDInterpreter (
+    MPDInterpreter
+  , mpdInterpreter
   ) where
 
 import Control.Monad
+import Control.Applicative
 import Data.String (fromString)
-import Data.Binary (encode)
 
 import Network.MPD
 
@@ -16,15 +18,22 @@ import Disjunct
 
 import PoxgramInterpreter
 
-instance (Functor m, MonadMPD m) => PoxgramInterpreter m Song where
-  atomizeComprehension = evalComprehension
-  playSong = playSongAndBlock
+-- | The MPDInterpreter type.
+-- TODO parameterize on some MPD connection parameters.
+data MPDInterpreter = MkMPDInterpreter
+
+mpdInterpreter :: MPDInterpreter
+mpdInterpreter = MkMPDInterpreter
+
+instance PoxgramInterpreter MPDInterpreter Song where
+  atomizeComprehension = \x -> mpdAtomizeComprehension
+  playAtoms = \x -> mpdPlaySongs
 
 -- | The goal implementation: play a song and block until its finished.
 --   Aha but MPD does not play songs, it plays a playlist.
 --   This will have to clear the playlist, put the song in, and hit play.
-playSong' :: (MonadMPD m) => Song -> m ()
-playSong' s = do
+playSong :: Song -> MPD ()
+playSong s = do
   clear
   add_ $ sgFilePath s
   -- play takes a Maybe Int. I believe it indicates the position in the
@@ -32,9 +41,9 @@ playSong' s = do
   -- We give Nothing; hopefully that means start from the beginning
   play Nothing
 
-playSongAndBlock :: (MonadMPD m) => Song -> m ()
+playSongAndBlock :: Song -> MPD ()
 playSongAndBlock s = do
-  playSong' s
+  playSong s
   -- This is dubious. We may have a race!
   -- We want to block until the song is over; how can we do that with MPD's
   -- api? I figure we just block until the player subsystem has a state change.
@@ -44,9 +53,17 @@ playSongAndBlock s = do
   idle [PlayerS]
   return ()
 
+playSongs' :: MPD [Song] -> MPD ()
+playSongs' ys = do
+  songs <- ys
+  forM_ songs playSongAndBlock
+
+mpdPlaySongs :: IO [Song] -> IO ()
+mpdPlaySongs xs = (const ()) <$> (withMPD $ forM_ xs playSongs')
+
 -- | Produce a list of Songs from a Comprehension, inside some MonadMPD.
-evalComprehension :: (MonadMPD m) => Comprehension -> m [Song]
-evalComprehension = (liftM concat) . ((flip forM) find) . queriesFromComprehension
+mpdAtomizeComprehension :: (MonadMPD m) => Comprehension -> m [Song]
+mpdAtomizeComprehension = (liftM concat) . ((flip forM) find) . queriesFromComprehension
 
 queriesFromComprehension :: Comprehension -> [Query]
 queriesFromComprehension = queriesFromConjuncts . getConjuncts
